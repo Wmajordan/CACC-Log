@@ -6,7 +6,7 @@ function saveAnimals() {
 
 function getVolunteerInitials() {
   const name = document.getElementById('volunteer-name').value.trim();
-  return name ? name.split(' ').map(n => n[0]).toUpperCase().join('') : '';
+  return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '';
 }
 
 function saveAnimal() {
@@ -27,17 +27,18 @@ function saveAnimal() {
     return;
   }
 
-  const readFiles = (files) => Promise.all(
-    Array.from(files).map(file => {
-      return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = e => resolve({ src: e.target.result, type: file.type });
-        reader.readAsDataURL(file);
-      });
-    })
-  );
+  const files = mediaInput.files;
+  const readFiles = files.length
+    ? Promise.all(Array.from(files).map(file => {
+        return new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = e => resolve({ src: e.target.result, type: file.type });
+          reader.readAsDataURL(file);
+        });
+      }))
+    : Promise.resolve([]); // If no files, return empty array
 
-  readFiles(mediaInput.files).then(mediaItems => {
+  readFiles.then(mediaItems => {
     if (id) {
       const animal = animals.find(animal => animal.id === parseInt(id));
       if (animal) {
@@ -136,7 +137,7 @@ function removeAnimal(id) {
 function holdAnimal(id) {
   const initials = getVolunteerInitials();
   const date = new Date().toLocaleDateString();
-  const animal = animals.find(a => a.id === id);
+  const animal = animals.find(animal => animal.id === id);
   if (animal) {
     animal.notes = 'Adoption Hold';
     animal.actions.push({ action: 'Hold', performedBy: initials, date });
@@ -144,6 +145,10 @@ function holdAnimal(id) {
     updateAnimalTable();
     alert(`${animal.name} is on hold.`);
   }
+}
+
+function showAnimals(type) {
+  updateAnimalTable(type);
 }
 
 function showPhotos(id) {
@@ -183,6 +188,5 @@ window.addEventListener('click', function (event) {
   }
 });
 
-// Initialize
+// Initialize table
 updateAnimalTable();
-
